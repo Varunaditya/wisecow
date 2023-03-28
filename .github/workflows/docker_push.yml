@@ -25,6 +25,7 @@ jobs:
       run:  docker build -t ${{ env.REPO }}/${{ env.IMAGE }}:$new_tag .
 
     - name: Login to DockerHub
+      # Using username and access token stored in repository secrets
       run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_TOKEN }}
 
     - name: Push the image
