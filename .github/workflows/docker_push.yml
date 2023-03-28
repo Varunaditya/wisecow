@@ -1,0 +1,31 @@
+name: Build and push Docker image
+env:
+  # Using env vars to pass the metadata for the DockerHub registry
+  REPO: varunaditya
+  IMAGE: cowsay
+on:
+  # Trigger the workflow if new commits are pushed to any branch
+  push:
+    branches: [ "*" ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set new tag
+      run: |
+        # Create a new tag with the format "username-UNIX time stamp"
+        # Fetch the username responsible for latest commit and replace spaces (if any) with underscore
+        git_user=$(git log -n 1 --pretty=format:%an | tr " " "_")
+        time_stamp=$(date +%s)
+        # Adding this variable as an environment variable to use it in upcoming steps
+        echo "new_tag=$git_user-$time_stamp" >> $GITHUB_ENV
+
+    - name: Build the image
+      run:  docker build -t ${{ env.REPO }}/${{ env.IMAGE }}:$new_tag .
+
+    - name: Login to DockerHub
+      run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Push the image
+      run: docker push ${{ env.REPO }}/${{ env.IMAGE }}:$new_tag
